@@ -68,7 +68,7 @@
 
 <script>
     import Pagination from '@/components/Pagination.vue'
-	import { mapActions } from 'vuex';
+	import { mapGetters, mapActions } from 'vuex';
 
 	export default {
         data(){
@@ -77,21 +77,26 @@
                     per_page: 10,
                     query: "",
                     current_page: 1
-                },
-                products: [],
-                pagination: {}
+                }
             }
+        },
+
+        computed: {
+            ...mapGetters({
+                products: 'product/products',
+                pagination: 'product/pagination',
+            })
         },
 
         watch: {
             "params.query"() {
-                this.allProducts();
+                this.getProducts(this.params);
             },
             "params.per_page"() {
-                this.allProducts();
+                this.getProducts(this.params);
             },
             "params.current_page"() {
-                this.allProducts();
+                this.getProducts(this.params);
             }
         },
 
@@ -104,7 +109,7 @@
             	if (confirm("Are you sure to delete?")) {
             		this.$Progress.start();
                     this.deleteProduct(id).then(res => {
-                    	this.products.splice(index, 1);
+                        this.getProducts(this.params);
                     	this.$Progress.finish();
                     	this.$snotify.success('Product successfully deleted',"Success");
                     }).catch(e => {
@@ -112,21 +117,11 @@
                     	this.$Progress.fail();
                     });
 				}
-            },
-            allProducts(){
-            	this.$Progress.start();
-            	this.getProducts(this.params).then(response => {
-            		this.$Progress.finish();
-            		this.products = response.data.data;
-            		this.pagination = response.data.meta;
-            	}).catch(e => {
-                	this.$Progress.fail();
-                });
             }
 	    },
 
 	    created(){
-	    	this.allProducts();
+	    	this.getProducts(this.params);
 	    },
         components: {
             Pagination
